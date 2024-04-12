@@ -7,6 +7,7 @@ from web3 import Web3
 
 # Update the following variables with your own Etherscan and BscScan API keys and Telegram bot token
 ETHERSCAN_API_KEY = '<your_etherscan_api_key>'
+BASESCAN_API_KEY = '<your_bscscan_api_key>'
 BSCSCAN_API_KEY = '<your_bscscan_api_key>'
 TELEGRAM_BOT_TOKEN = '<your_telegram_bot_token>'
 TELEGRAM_CHAT_ID = '<your_telegram_chat_id>'
@@ -17,6 +18,8 @@ def get_wallet_transactions(wallet_address, blockchain):
         url = f'https://api.etherscan.io/api?module=account&action=txlist&address={wallet_address}&sort=desc&apikey={ETHERSCAN_API_KEY}'
     elif blockchain == 'bnb':
         url = f'https://api.bscscan.com/api?module=account&action=txlist&address={wallet_address}&sort=desc&apikey={BSCSCAN_API_KEY}'
+    elif blockchain == 'base':
+        url = f'https://api.basescan.org/api?module=account&action=txlist&address={wallet_address}&sort=desc&apikey={BASESCAN_API_KEY}' 
     else:
         raise ValueError('Invalid blockchain specified')
 
@@ -35,6 +38,8 @@ def send_telegram_notification(message, value, usd_value, tx_hash, blockchain):
         etherscan_link = f'<a href="https://etherscan.io/tx/{tx_hash}">Etherscan</a>'
     elif blockchain == 'bnb':
         etherscan_link = f'<a href="https://bscscan.com/tx/{tx_hash}">BscScan</a>'
+    elif blockchain == 'base':
+        etherscan_link = f'<a href="https://basescan.org/tx/{tx_hash}">BaseScan</a>'
     else:
         raise ValueError('Invalid blockchain specified')
 
@@ -85,14 +90,13 @@ def monitor_wallets():
 
                     if tx_hash not in latest_tx_hashes and tx_time > last_run_time:
                         if tx['to'].lower() == wallet_address.lower():
-                            value = float(tx['value']) / 10**18 # Convert from wei to ETH or BNB
-                            usd_value = value * (eth_usd_price if blockchain == 'eth' else bnb_usd_price) # Calculate value in USD
+                            value = float(tx['value']) / 10**18  # Convert from wei
+                            usd_value = value * (eth_usd_price if blockchain in ['eth', 'base'] else bnb_usd_price)  # Handle BaseChain as ETH for price conversion
                             message = f'🚨 Incoming transaction detected on {wallet_address}'
                             send_telegram_notification(message, value, usd_value, tx['hash'], blockchain)
-                            #print(f'\n{message}, Value: {value} {blockchain.upper()}, ${usd_value:.2f}\n')
                         elif tx['from'].lower() == wallet_address.lower():
-                            value = float(tx['value']) / 10**18 # Convert from wei to ETH or BNB
-                            usd_value = value * (eth_usd_price if blockchain == 'eth' else bnb_usd_price) # Calculate value in USD
+                            value = float(tx['value']) / 10**18
+                            usd_value = value * (eth_usd_price if blockchain in ['eth', 'base'] else bnb_usd_price)
                             message = f'🚨 Outgoing transaction detected on {wallet_address}'
                             send_telegram_notification(message, value, usd_value, tx['hash'], blockchain)
                             #print(f'\n{message}, Value: {value} {blockchain.upper()}, ${usd_value:.2f}\n')
@@ -119,6 +123,10 @@ def add_wallet(wallet_address, blockchain):
     file_path = "watched_wallets.txt"
     with open(file_path, 'a') as f:
         f.write(f'{blockchain}:{wallet_address}\n')
+        # Automatically add to BaseChain if the address is in Ethereum format and the blockchain is 'eth'
+        if blockchain == 'eth' and re.match(r'^0x[a-fA-F0-9]{40}$', wallet_address):
+            f.write(f'base:{wallet_address}\n')
+
 
 def remove_wallet(wallet_address, blockchain):
     file_path = "watched_wallets.txt"

@@ -47,12 +47,14 @@ You'll also need to obtain API keys for Etherscan and BSCscan, as well as a Tele
 2. Install the required packages: `pip install -r requirements.txt`
 3. Replace the following placeholders in the `main.py` file with your API keys and bot token:
 
-    ```python
-    ETHERSCAN_API_KEY = '<your_etherscan_api_key>'
-    BSCSCAN_API_KEY = '<your_bscscan_api_key>'
-    TELEGRAM_BOT_TOKEN = '<your_telegram_bot_token>'
-    TELEGRAM_CHAT_ID = '<your_telegram_chat_id>'
-    ```
+   ```python
+   ETHERSCAN_API_KEY = '<your_etherscan_api_key>'
+   BSCSCAN_API_KEY = '<your_bscscan_api_key>'
+   BASESCAN_API_KEY = '<your_basescan_api_key>'
+   TELEGRAM_BOT_TOKEN = '<your_telegram_bot_token>'
+   TELEGRAM_CHAT_ID = '<your_telegram_chat_id>'
+   ```
+
 4. Start the bot: `python main.py`
 
 ## Screenshots
